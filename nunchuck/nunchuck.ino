@@ -227,10 +227,10 @@ void setup()
 static int set_steering(int raw_value)
 {
   if(raw_value > 150)
-  return raw_value-150;
+  return floor((raw_value-150)*1.28);
 
   if(raw_value < 120)
-  return raw_value-120;
+  return floor((raw_value-120)*1.06);
   else
   return 0;
 }
@@ -238,7 +238,7 @@ static int set_steering(int raw_value)
 static int set_accelerator(int raw_value)
 {
   if(raw_value > 150)
-  return raw_value-150;
+  return floor((raw_value-150)*1.3);
   else
   return 0;
 }
@@ -246,7 +246,7 @@ static int set_accelerator(int raw_value)
 static int set_brake(int raw_value)
 {
   if (raw_value < 120)
-  return (-1*raw_value)+120;
+  return floor(((-1*raw_value)+120)*1.1);
   else
   return 0;
 }
