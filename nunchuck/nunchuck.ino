@@ -225,53 +225,84 @@ void setup()
 
 //Control Functions
 
-float max_steering = 1024;
-float max_gas = 1024;        /// the maximum values for each actuator; we won't always have it going all the way to 1024
-float max_brake = 1024;
+float min_steering = 20.0;
+float max_steering = 1000.0;
+float center_steering = max_steering - ((max_steering - min_steering)/2);
+float lower_steering_size = center_steering - min_steering;
+float upper_steering_size = max_steering - center_steering;
 
-static float set_steering(int raw_value) //set steering actuator
+
+float max_gas = 800.0;        /// the maximum values for each actuator; we won't always have it going all the way to 1024
+float min_gas = 40.0;
+float gas_size = max_gas - min_gas;
+
+float max_brake = 500.0;
+float min_brake = 100.0;
+float brake_size = max_brake - min_brake;
+
+float wiichuck_min = 30.0;
+float wiichuck_max = 226.0;
+float wiichuck_range = wiichuck_max - wiichuck_min;
+float center = wiichuck_max - ((wiichuck_range)/2);
+
+float deadzone_min = 128;
+float deadzone_max = 136;
+
+float lower_zone_size = deadzone_min - wiichuck_min;
+float upper_zone_size = wiichuck_max - deadzone_max;
+
+static int set_steering(int raw_value) //set steering actuator
 {
-  float scalar = max_steering/190; //the range for the wii nunchuck is 190. you have a 230 max, a 30 min, and a deadzone of 10. 230 - 30 - 10 = 190
+  //return raw_value;
+  float scalar_lower = (lower_steering_size)/lower_zone_size; //scalar for lower part
+  float scalar_upper = (upper_steering_size)/upper_zone_size; //scaler for upper part
 
-  if(raw_value > 125 && raw_value < 135) //deadzone
+  if(raw_value > deadzone_min && raw_value < deadzone_max) //deadzone
   {
-    return max_steering/2;              //if in deadzone, center steering
+    return center_steering;              //if in deadzone, center steering
   }
-  else if(raw_value <= 125)             //if less than deadzone, go left
+  else if(raw_value <= deadzone_min)             //if less than deadzone, go left
   {
-    return (raw_value - 30) * scalar;  //subtract 30 from the raw value because the min is 30, then multiply by scalar
+    return min_steering + (raw_value - wiichuck_min) * scalar_lower;  //scales raw_value
   }
   else                                //if more than deadzone, go right
   {
-    return ((raw_value - 135) * scalar) + max_steering/2; //subtract 135 because min is 135 when going right, then multiply by scalar
+    if(raw_value > wiichuck_max)  //if over max value, set equal to max value
+    {
+      return max_steering;
+    }
+    else
+    {
+      return center_steering + ((raw_value - deadzone_max) * scalar_upper); //scale raw_value
+    }
   }
 }
 
-static float set_accelerator(int raw_value) //set accelerator actuator
+static int set_accelerator(int raw_value) //set accelerator actuator
 {
-  float scalar = max_gas/95;        //the range for the wii nunchuck is 190, but we're only using the top hemisphere of the joy stick for gas, divide 190 by 2
+  //return raw_value;
+  float scalar = gas_size/upper_zone_size;        //sets scalar
 
-  if(raw_value < 135)               //if less than deadzone or mid value, we will be breaking, so gas is zero
+  if(raw_value < deadzone_max)               //if less than deadzone or mid value, we will be breaking, so gas is zero
   {
-    return 0;
-  }
-  else                              //min is 135, so subtract 135, then multiple by scalar
-  {
-    return (raw_value - 135) * scalar;
-  }
+    return min_gas;
+  }                              //min is 135, so subtract 135, then multiple by scalar
+    return min_gas + ((raw_value - deadzone_max) * scalar);
 }
 
-static float set_brake(int raw_value) //set brake actuator
+static int set_brake(int raw_value) //set brake actuator
 {
-  float scalar = max_brake/95; //the range for the wii nunchuck is 190, but we're only using the bottom hemispher of the joy stick for braking, divide 1902 by 2
 
-  if(raw_value > 125) //if greater than deadzone or mid value, we will be gasing, so brake is zero
+  //return raw_value;
+  float scalar = brake_size/lower_zone_size; //sets scalar
+
+  if(raw_value > deadzone_min) //if greater than deadzone or mid value, we will be gasing, so brake is max
   {
-    return 0;
+    return max_brake;
   }
-  else  //min is 30, so subtract 30. we assume the break is at full force when the actuator is at full length (max_brake), so we subtract the wii chuck value from the max_brake
+  else  //we assume the break is at full force when the actuator is at min length (min_brake), so we subtract the wii chuck value from the max_brake
   {
-    return max_brake - ((raw_value - 30) * scalar);
+    return ((raw_value - wiichuck_min) * scalar) + min_brake;
   }
 }
 
@@ -298,8 +329,8 @@ void loop()
     Serial.print("\tzbut: "); Serial.print((byte)zbut, DEC);
     Serial.print("\tcbut: "); Serial.println((byte)cbut, DEC); */
     Serial.print("Steering: "); Serial.print(set_steering(joyx));
-    Serial.print("\tAccelerator: "); Serial.print((byte)set_accelerator(joyy));
-    Serial.print("\tBrake: "); Serial.println((byte)set_brake(joyy));
+    Serial.print("\tAccelerator: "); Serial.print(set_accelerator(joyy));
+    Serial.print("\tBrake: "); Serial.println(set_brake(joyy));
   }
   loop_cnt++;
   delay(1);
