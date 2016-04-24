@@ -215,6 +215,7 @@ int ledPin = 13;
 
 
 void setup()
+
 {
   Serial.begin(19200);
   nunchuck_setpowerpins();
@@ -224,152 +225,28 @@ void setup()
 }
 
 //Control Functions
-
-float min_steering = 0.0;
-float max_steering = 1024.0;
-float center_steering = max_steering - ((max_steering - min_steering)/2);
-float lower_steering_size = center_steering - min_steering;
-float upper_steering_size = max_steering - center_steering;
-
-
-float max_gas = 900.0;        /// the maximum values for each actuator; we won't always have it going all the way to 1024
-float min_gas = 0.0;
-float gas_size = max_gas - min_gas;
-
-float max_brake = 1024.0;
-float min_brake = 0.0;
-float brake_size = max_brake - min_brake;
-
-float wiichuck_min = 30.0;
-float wiichuck_max = 226.0;
-float wiichuck_range = wiichuck_max - wiichuck_min;
-float center = wiichuck_max - ((wiichuck_range)/2);
-
-float deadzone_min = 128;
-float deadzone_max = 136;
-
-float lower_zone_size = deadzone_min - wiichuck_min;
-float upper_zone_size = wiichuck_max - deadzone_max;
-
-static int set_goal_steering(int raw_value) { //set steering actuator
-  //return raw_value;
-  float scalar_lower = (lower_steering_size)/lower_zone_size; //scalar for lower part
-  float scalar_upper = (upper_steering_size)/upper_zone_size; //scaler for upper part
-
-  if(raw_value > deadzone_min && raw_value < deadzone_max) { //deadzone
-    return center_steering;              //if in deadzone, center steering
-  }
-  else if(raw_value <= deadzone_min) {            //if less than deadzone, go left
-    return min_steering + (raw_value - wiichuck_min) * scalar_lower;  //scales raw_value
-  }
-  else {                              //if more than deadzone, go right
-    if(raw_value > wiichuck_max) {  //if over max value, set equal to max value
-      return max_steering;
-    }
-    else {
-      return center_steering + ((raw_value - deadzone_max) * scalar_upper); //scale raw_value
-    }
-  }
+static int set_steering(int raw_value)
+{
+  return raw_value;
 }
 
-static int set_goal_accelerator(int raw_value) { //set accelerator actuator
-  //return raw_value;
-  float scalar = gas_size/upper_zone_size;        //sets scalar
-  if(raw_value < deadzone_max) {               //if less than deadzone or mid value, we will be breaking, so gas is zero
-    return min_gas;
-  }                              //min is 135, so subtract 135, then multiple by scalar
-    return min_gas + ((raw_value - deadzone_max) * scalar);
+static int set_accelerator(int raw_value)
+{
+ 
+  return raw_value;
 }
 
-static int set_goal_brake(int raw_value){ //set brake actuator
-  //return raw_value;
-  float scalar = brake_size/lower_zone_size; //sets scalar
-  if(raw_value > deadzone_min) { //if greater than deadzone or mid value, we will be gasing, so brake is max  
-    return max_brake;
-  }
-  else {  //we assume the break is at full force when the actuator is at min length (min_brake), so we subtract the wii chuck value from the max_brake
-    return ((raw_value - wiichuck_min) * scalar) + min_brake;
-  }
+static int set_brake(int raw_value)
+{
+  
+   return raw_value;
 }
 
-int threshold = 20;
-int power = 255;
-
-int steeringPosition;
-int STEERING_SENSE_PIN = 12;
-int STEERING_DIRECTION_PIN = 6;
-int STEERING_VELOCITY_PIN = 7;
-bool steeringChanged = true;
-
-int accelerator_position;
-int ACCELERATOR_SENSE_PIN = 10;
-int ACCELERATOR_DIRECTION_PIN = 2;
-int ACCELERATOR_VELOCITY_PIN = 3;
-bool acceleratorChanged = true;
-
-int braking_position;
-int BRAKING_SENSE_PIN = 8;
-int BRAKING_VELOCITY_PIN = 4;
-int BRAKING_DIRECTION_PIN = 5;
-bool brakingChanged = true;
-
-int safetypin = 8;
-
-
-void set_steering(int goal) {
-    steeringPosition = analogRead(STEERING_SENSE_PIN);
-     
-    if (steeringPosition < goal - threshold) { // always move toward the value
-            digitalWrite(STEERING_DIRECTION_PIN, LOW);
-            analogWrite(STEERING_VELOCITY_PIN, power);
-            Serial.println("Moving from <");
-    } else if (steeringPosition > goal + threshold) {
-            digitalWrite(STEERING_DIRECTION_PIN, HIGH);
-            analogWrite(STEERING_VELOCITY_PIN, power);
-            Serial.println("Moving from >");
-    } else {
-            analogWrite(STEERING_VELOCITY_PIN, 0);
-            steeringChanged = false;
-            Serial.println("Flag is now false");
-    }   
-}
-
-void set_accelerator(int goal) {
-    accelerator_position = analogRead(ACCELERATOR_SENSE_PIN);
-            
-      if (accelerator_position < goal - threshold) { // always move toward the value
-            digitalWrite(ACCELERATOR_DIRECTION_PIN, LOW);
-            analogWrite(ACCELERATOR_VELOCITY_PIN, power);
-    } else if (accelerator_position > goal + threshold) {
-            digitalWrite(ACCELERATOR_DIRECTION_PIN, HIGH);
-            analogWrite(ACCELERATOR_VELOCITY_PIN, power);
-    } else {
-            analogWrite(ACCELERATOR_VELOCITY_PIN, 0);
-            acceleratorChanged = false; 
-    }
-}
-
-void set_brake(int goal) {
-    braking_position = analogRead(BRAKING_SENSE_PIN);
-            
-      if (braking_position < goal - threshold) { // always move toward the value
-            digitalWrite(BRAKING_DIRECTION_PIN, LOW);
-            analogWrite(BRAKING_VELOCITY_PIN, power);
-    } else if (braking_position > goal + threshold) {
-            digitalWrite(BRAKING_DIRECTION_PIN, HIGH);
-            analogWrite(BRAKING_VELOCITY_PIN, power);
-    } else {
-            analogWrite(BRAKING_VELOCITY_PIN, 0);
-            brakingChanged = false; 
-    }
-}
-
-void loop() {
+void loop()
+{
   if ( loop_cnt > 10 ) { // every 100 msecs get new data
     loop_cnt = 0;
 
-    digitalWrite(safetypin, HIGH);
-    
     nunchuck_get_data();
 
     accx  = nunchuck_accelx(); // ranges from approx 70 - 182
@@ -378,31 +255,16 @@ void loop() {
     cbut = nunchuck_cbutton();
     joyx = nunchuck_joyx();
     joyy = nunchuck_joyy();
+
     /*Serial.print("accx: "); Serial.print((byte)accx, DEC);
     Serial.print("\taccy: "); Serial.print((byte)accy, DEC);
     Serial.print("\tjoyx: "); Serial.print((byte)joyx, DEC);
     Serial.print("\tjoyy: "); Serial.print((byte)joyy, DEC);
     Serial.print("\tzbut: "); Serial.print((byte)zbut, DEC);
     Serial.print("\tcbut: "); Serial.println((byte)cbut, DEC); */
-    Serial.print("Steering: "); Serial.print(set_goal_steering(joyx));
-    Serial.print("\tAccelerator: "); Serial.print(set_goal_accelerator(joyy));
-    Serial.print("\tBrake: "); Serial.println(set_goal_brake(joyy));
-
-    steeringChanged = true;
-    acceleratorChanged = true;
-    brakingChanged = true;
-
-    if (steeringChanged) {
-        set_steering(set_goal_steering(joyx));
-    }
-
-    if (acceleratorChanged) {
-        set_accelerator(set_goal_accelerator(joyy));
-    }
-
-    if (brakingChanged) {
-        set_brake(set_goal_brake(joyy));
-    }
+    Serial.print("Steering: "); Serial.print(set_steering(joyx));
+    Serial.print("\tAccelerator: "); Serial.print((byte)set_accelerator(joyy));
+    Serial.print("\tBrake: "); Serial.println((byte)set_brake(joyy));
   }
   loop_cnt++;
   delay(1);
