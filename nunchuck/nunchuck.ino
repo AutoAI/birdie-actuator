@@ -214,14 +214,7 @@ byte accx, accy, zbut, cbut, joyx, joyy;
 int ledPin = 13;
 
 
-void setup()
-{
-  Serial.begin(19200);
-  nunchuck_setpowerpins();
-  nunchuck_init(); // send the initilization handshake
 
-  Serial.print("WiiChuckDemo ready\n");
-}
 
 //Control Functions
 
@@ -297,8 +290,8 @@ int power = 255;
 
 int steeringPosition;
 int STEERING_SENSE_PIN = 12;
-int STEERING_DIRECTION_PIN = 6;
-int STEERING_VELOCITY_PIN = 7;
+int STEERING_DIRECTION_PIN = 7;
+int STEERING_VELOCITY_PIN = 6;
 bool steeringChanged = true;
 
 int accelerator_position;
@@ -309,11 +302,12 @@ bool acceleratorChanged = true;
 
 int braking_position;
 int BRAKING_SENSE_PIN = 8;
-int BRAKING_VELOCITY_PIN = 4;
-int BRAKING_DIRECTION_PIN = 5;
+int BRAKING_VELOCITY_PIN = 5;
+int BRAKING_DIRECTION_PIN = 4;
 bool brakingChanged = true;
 
 int safetypin = 8;
+
 
 
 void set_steering(int goal) {
@@ -353,7 +347,7 @@ void set_brake(int goal) {
     braking_position = analogRead(BRAKING_SENSE_PIN);
             
       if (braking_position < goal - threshold) { // always move toward the value
-            digitalWrite(BRAKING_DIRECTION_PIN, LOW);
+            digitalWrite(BRAKING_DIRECTION_PIN, HIGH);
             analogWrite(BRAKING_VELOCITY_PIN, power);
     } else if (braking_position > goal + threshold) {
             digitalWrite(BRAKING_DIRECTION_PIN, HIGH);
@@ -362,6 +356,21 @@ void set_brake(int goal) {
             analogWrite(BRAKING_VELOCITY_PIN, 0);
             brakingChanged = false; 
     }
+}
+
+void setup()
+{
+  Serial.begin(19200);
+  nunchuck_setpowerpins();
+  nunchuck_init(); // send the initilization handshake
+
+pinMode(STEERING_VELOCITY_PIN, OUTPUT);
+pinMode(STEERING_DIRECTION_PIN, OUTPUT);
+pinMode(BRAKING_VELOCITY_PIN, OUTPUT);
+pinMode(BRAKING_DIRECTION_PIN, OUTPUT);
+pinMode(ACCELERATOR_VELOCITY_PIN, OUTPUT);
+pinMode(ACCELERATOR_DIRECTION_PIN, OUTPUT);
+  Serial.print("WiiChuckDemo ready\n");
 }
 
 void loop() {
