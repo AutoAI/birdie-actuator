@@ -285,25 +285,23 @@ static int set_goal_brake(int raw_value){ //set brake actuator
   }
 }
 
-int threshold = 20;
+int threshold = 30;
 int power = 255;
 
 int steeringPosition;
-int STEERING_SENSE_PIN = 12;
-int STEERING_DIRECTION_PIN = 7;
-int STEERING_VELOCITY_PIN = 6;
+int STEERING_SENSE_PIN = 0;
+int STEERING_DIRECTION_PIN = 4;
+int STEERING_VELOCITY_PIN = 5;
 bool steeringChanged = true;
 
-int accelerator_position;
-int ACCELERATOR_SENSE_PIN = 10;
-int ACCELERATOR_DIRECTION_PIN = 2;
-int ACCELERATOR_VELOCITY_PIN = 3;
+int ACCELERATOR_DIRECTION_PIN = 7;
+int ACCELERATOR_VELOCITY_PIN = 6;
 bool acceleratorChanged = true;
 
 int braking_position;
-int BRAKING_SENSE_PIN = 8;
-int BRAKING_VELOCITY_PIN = 5;
-int BRAKING_DIRECTION_PIN = 4;
+int BRAKING_SENSE_PIN = 1;
+int BRAKING_VELOCITY_PIN = 3;
+int BRAKING_DIRECTION_PIN = 2;
 bool brakingChanged = true;
 
 int safetypin = 8;
@@ -329,25 +327,16 @@ void set_steering(int goal) {
 }
 
 void set_accelerator(int goal) {
-    accelerator_position = analogRead(ACCELERATOR_SENSE_PIN);
             
-      if (accelerator_position < goal - threshold) { // always move toward the value
-            digitalWrite(ACCELERATOR_DIRECTION_PIN, LOW);
-            analogWrite(ACCELERATOR_VELOCITY_PIN, power);
-    } else if (accelerator_position > goal + threshold) {
-            digitalWrite(ACCELERATOR_DIRECTION_PIN, HIGH);
-            analogWrite(ACCELERATOR_VELOCITY_PIN, power);
-    } else {
-            analogWrite(ACCELERATOR_VELOCITY_PIN, 0);
+            analogWrite(ACCELERATOR_VELOCITY_PIN, floor(goal/4));
             acceleratorChanged = false; 
     }
-}
 
 void set_brake(int goal) {
     braking_position = analogRead(BRAKING_SENSE_PIN);
             
       if (braking_position < goal - threshold) { // always move toward the value
-            digitalWrite(BRAKING_DIRECTION_PIN, HIGH);
+            digitalWrite(BRAKING_DIRECTION_PIN, LOW);
             analogWrite(BRAKING_VELOCITY_PIN, power);
     } else if (braking_position > goal + threshold) {
             digitalWrite(BRAKING_DIRECTION_PIN, HIGH);
@@ -387,16 +376,11 @@ void loop() {
     cbut = nunchuck_cbutton();
     joyx = nunchuck_joyx();
     joyy = nunchuck_joyy();
-    /*Serial.print("accx: "); Serial.print((byte)accx, DEC);
-    Serial.print("\taccy: "); Serial.print((byte)accy, DEC);
-    Serial.print("\tjoyx: "); Serial.print((byte)joyx, DEC);
-    Serial.print("\tjoyy: "); Serial.print((byte)joyy, DEC);
-    Serial.print("\tzbut: "); Serial.print((byte)zbut, DEC);
-    Serial.print("\tcbut: "); Serial.println((byte)cbut, DEC); */
-    Serial.print("Steering: "); Serial.print(set_goal_steering(joyx));
-    Serial.print("\tAccelerator: "); Serial.print(set_goal_accelerator(joyy));
-    Serial.print("\tBrake: "); Serial.println(set_goal_brake(joyy));
+    
+    Serial.print(braking_position);
+    Serial.print(set_goal_brake(joyy));
 
+    
     steeringChanged = true;
     acceleratorChanged = true;
     brakingChanged = true;
