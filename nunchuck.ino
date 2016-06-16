@@ -218,8 +218,8 @@ int ledPin = 13;
 
 //Control Functions
 
-float min_steering = 0.0;
-float max_steering = 1024.0;
+float min_steering = 20;
+float max_steering = 910;
 float center_steering = max_steering - ((max_steering - min_steering)/2);
 float lower_steering_size = center_steering - min_steering;
 float upper_steering_size = max_steering - center_steering;
@@ -246,22 +246,17 @@ float upper_zone_size = wiichuck_max - deadzone_max;
 
 static int set_goal_steering(int raw_value) { //set steering actuator
   //return raw_value;
-  float scalar_lower = (lower_steering_size)/lower_zone_size; //scalar for lower part
-  float scalar_upper = (upper_steering_size)/upper_zone_size; //scaler for upper part
+  float scalar_lower = (upper_steering_size)/lower_zone_size; //scalar for lower part
+  float scalar_upper = (lower_steering_size)/upper_zone_size; //scaler for upper part
 
   if(raw_value > deadzone_min && raw_value < deadzone_max) { //deadzone
     return center_steering;              //if in deadzone, center steering
   }
   else if(raw_value <= deadzone_min) {            //if less than deadzone, go left
-    return min_steering + (raw_value - wiichuck_min) * scalar_lower;  //scales raw_value
+      return max_steering - ((raw_value - wiichuck_min) * scalar_lower);
   }
   else {                              //if more than deadzone, go right
-    if(raw_value > wiichuck_max) {  //if over max value, set equal to max value
-      return max_steering;
-    }
-    else {
-      return center_steering + ((raw_value - deadzone_max) * scalar_upper); //scale raw_value
-    }
+      return min_steering + (center_steering - ((raw_value - deadzone_max) * scalar_upper)); //scale raw_value
   }
 }
 
@@ -274,9 +269,14 @@ static int set_goal_accelerator(int raw_value) { //set accelerator actuator
     return min_gas + ((raw_value - deadzone_max) * scalar);
 }
 
-static int set_goal_brake(int raw_value){ //set brake actuator
+static int set_goal_brake(int raw_value, int zbut, int cbut){ //set brake actuator
   //return raw_value;
   float scalar = brake_size/lower_zone_size; //sets scalar
+
+  if(zbut == 1 || cbut == 1){
+    return min_brake;
+  }
+  
   if(raw_value > deadzone_min) { //if greater than deadzone or mid value, we will be gasing, so brake is max  
     return max_brake;
   }
@@ -376,9 +376,21 @@ void loop() {
     cbut = nunchuck_cbutton();
     joyx = nunchuck_joyx();
     joyy = nunchuck_joyy();
+<<<<<<< HEAD
     
     Serial.print(braking_position);
     Serial.print(set_goal_brake(joyy));
+=======
+    //Serial.print("accx: "); Serial.print((byte)accx, DEC);
+    //Serial.print("\taccy: "); Serial.print((byte)accy, DEC);
+    //Serial.print("\tjoyx: "); Serial.print((byte)joyx, DEC);
+   // Serial.print("\tjoyy: "); Serial.print((byte)joyy, DEC);
+    //Serial.print("\tzbut: "); Serial.print((byte)zbut, DEC);
+    //Serial.print("\tcbut: "); Serial.println((byte)cbut, DEC); 
+    Serial.print("Steering: "); Serial.print(set_goal_steering(joyx));
+    Serial.print("\tAccelerator: "); Serial.print(set_goal_accelerator(joyy));
+    Serial.print("\tBrake: "); Serial.println(set_goal_brake(joyy, zbut, cbut));
+>>>>>>> 11fdb1d740bda54629449bb8e9a01e889d88bd62
 
     
     steeringChanged = true;
@@ -394,7 +406,7 @@ void loop() {
     }
 
     if (brakingChanged) {
-        set_brake(set_goal_brake(joyy));
+        set_brake(set_goal_brake(joyy, zbut, cbut));
     }
   }
   loop_cnt++;
