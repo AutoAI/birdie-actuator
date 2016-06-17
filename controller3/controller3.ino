@@ -188,18 +188,31 @@ int ledPin = 13;
 //Pin Declarations
 
 //inputs
-//TODO Uppercase
-const int steering_measure_pin = 0;
-const int braking_measure_pin = 1;
-const int emergency_stop_pin = 2;
+const int STEERING_MEASURE_PIN = 0;
+const int BRAKING_MEASURE_PIN = 1;
+const int EMERGENCY_STOP_PIN = 2;
 
 //outputs
-const int steering_speed_pin = 2;
-const int steering_direction_pin = 3;
-const int braking_speed_pin = 4;
-const int braking_direction_pin = 5;
-const int motor_pwm_pin = 6;
+const int STEERING_SPEED_PIN = 2;
+const int STEERING_DIRECTION_PIN = 3;
+const int BRAKING_SPEED_PIN = 4;
+const int BRAKING_DIRECTION_PIN = 5;
+const int MOTOR_PWM_PIN = 6;
 
+void setMotor(int amount) {
+  digitalWrite(MOTOR_PWM_PIN, amount);
+}
+
+void setSteering(int current, int goal) {
+int error_bound
+}
+
+void setBraking(int current, int goal) {
+
+}
+
+
+  
 void setup
 
 void loop() {
@@ -208,17 +221,22 @@ void loop() {
   int braking_goal;
   int motor_goal;
   
-  if (nunchuck_cbutton) {
-    steering_goal = getStNun
-    braking goal = getBrNun
-    acceleration_goal = getAccNun
-  } else if (serial) {
-    steering_goal = getStSer()
-    ...
+  //data aquisition
+  if (nunchuck_cbutton) { //if the c button is pressed
+    steering_goal = getSteeringNunchuck();
+    braking_goal = getBrakingNunchuck();
+    motor_goal = getMotorNunchuck();
+    
+  } else if (Serial) { //otherwise do what the computer says
+    steering_goal = getSteeringSerial();
+    braking_goal = getBrakingSerial();
+    motor_goal = getMotorNunchuck();
+    
   } else {
-    steering_goal = getStNull()
+    emergency(); //something must have gone wrong
   }
-
+  
+  //set the controls
   setSteering(getCurrentSteering(STEERING_PIN), steering_goal);
   setSteering(getCurrentSteering(STEERING_PIN), steering_goal);
   setMotor(steering_goal);
