@@ -33,11 +33,7 @@ static uint8_t nunchuck_buf[6];   // array to store nunchuck data,
 // Uses port C (analog in) pins as power & ground for Nunchuck
 static void nunchuck_setpowerpins()
 {
-#define pwrpin PORTC3
-#define gndpin PORTC2
-    DDRC |= _BV(pwrpin) | _BV(gndpin);
-    PORTC &=~ _BV(gndpin);
-    PORTC |=  _BV(pwrpin);
+
     delay(100);  // wait for things to stabilize        
 }
 
@@ -289,19 +285,19 @@ int threshold = 30;
 int power = 255;
 
 int steeringPosition;
-int STEERING_SENSE_PIN = 0;
-int STEERING_DIRECTION_PIN = 4;
-int STEERING_VELOCITY_PIN = 5;
+int STEERING_SENSE_PIN = 1;
+int STEERING_DIRECTION_PIN = 7;
+int STEERING_VELOCITY_PIN = 6;
 bool steeringChanged = true;
 
-int ACCELERATOR_DIRECTION_PIN = 7;
-int ACCELERATOR_VELOCITY_PIN = 6;
+int ACCELERATOR_DIRECTION_PIN = 10;
+int ACCELERATOR_VELOCITY_PIN = 9;
 bool acceleratorChanged = true;
 
 int braking_position;
-int BRAKING_SENSE_PIN = 1;
-int BRAKING_VELOCITY_PIN = 3;
-int BRAKING_DIRECTION_PIN = 2;
+int BRAKING_SENSE_PIN = 0;
+int BRAKING_VELOCITY_PIN = 5;
+int BRAKING_DIRECTION_PIN = 4;
 bool brakingChanged = true;
 
 int safetypin = 8;
@@ -376,11 +372,9 @@ void loop() {
     cbut = nunchuck_cbutton();
     joyx = nunchuck_joyx();
     joyy = nunchuck_joyy();
-<<<<<<< HEAD
     
     Serial.print(braking_position);
-    Serial.print(set_goal_brake(joyy));
-=======
+    
     //Serial.print("accx: "); Serial.print((byte)accx, DEC);
     //Serial.print("\taccy: "); Serial.print((byte)accy, DEC);
     //Serial.print("\tjoyx: "); Serial.print((byte)joyx, DEC);
@@ -390,7 +384,6 @@ void loop() {
     Serial.print("Steering: "); Serial.print(set_goal_steering(joyx));
     Serial.print("\tAccelerator: "); Serial.print(set_goal_accelerator(joyy));
     Serial.print("\tBrake: "); Serial.println(set_goal_brake(joyy, zbut, cbut));
->>>>>>> 11fdb1d740bda54629449bb8e9a01e889d88bd62
 
     
     steeringChanged = true;
