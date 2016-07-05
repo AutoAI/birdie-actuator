@@ -13,6 +13,7 @@ int brakingPosition = 0;
 
 int steeringGoal = 512;
 int brakingGoal = 512;
+int accelerationGoal = 0;
 
 boolean steeringChanged = true;
 boolean brakingChanged = true;
@@ -110,4 +111,3 @@ void setAcceleration(int goal) {
     digitalWrite(MOTOR_PIN, goal);
     accelerationChanged = false;
     }
-}
