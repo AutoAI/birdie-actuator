@@ -1,12 +1,12 @@
 const int MOTOR_PIN = 8;
 
-const int BRAKING_VELOCITY_PIN = 3;
-const int BRAKING_DIRECTION_PIN = 2;
-const int BRAKING_SENSE_PIN = 1;
+const int BRAKING_VELOCITY_PIN = 5;
+const int BRAKING_DIRECTION_PIN = 4;
+const int BRAKING_SENSE_PIN = 4;
 
-const int STEERING_VELOCITY_PIN = 5;
-const int STEERING_DIRECTION_PIN = 4;
-const int STEERING_SENSE_PIN = 0;
+const int STEERING_VELOCITY_PIN = 6;
+const int STEERING_DIRECTION_PIN = 7;
+const int STEERING_SENSE_PIN = 5;
 
 int steeringPosition = 0;
 int brakingPosition = 0;
